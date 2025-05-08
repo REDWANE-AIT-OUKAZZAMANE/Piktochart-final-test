@@ -67,6 +67,7 @@ class AcmeWidgetWebApp < Sinatra::Base
 
   post '/add/:code' do |code|
     begin
+      @basket = setup_app
       product = @products.find { |p| p.code == code }
       
       if product.nil?
@@ -83,8 +84,6 @@ class AcmeWidgetWebApp < Sinatra::Base
         else
           item[:quantity] += 1
         end
-        
-        @basket = setup_app
         
         # Calculate more detailed response information
         subtotal = @basket.items.sum { |item| item[:product].price * item[:quantity] }
@@ -129,12 +128,13 @@ class AcmeWidgetWebApp < Sinatra::Base
     rescue => e
       content_type :json
       status 500
-      { success: false, message: e.message }.to_json
+      { success: false, message: "Error processing request: #{e.message}" }.to_json
     end
   end
 
   post '/remove/:code' do |code|
     begin
+      @basket = setup_app
       item_index = session[:items]&.find_index { |i| i[:code] == code }
       
       if item_index
@@ -143,8 +143,6 @@ class AcmeWidgetWebApp < Sinatra::Base
         else
           session[:items].delete_at(item_index)
         end
-        
-        @basket = setup_app
         
         # Calculate more detailed response information
         subtotal = @basket.items.sum { |item| item[:product].price * item[:quantity] }
@@ -193,7 +191,7 @@ class AcmeWidgetWebApp < Sinatra::Base
     rescue => e
       content_type :json
       status 500
-      { success: false, message: e.message }.to_json
+      { success: false, message: "Error processing request: #{e.message}" }.to_json
     end
   end
 
