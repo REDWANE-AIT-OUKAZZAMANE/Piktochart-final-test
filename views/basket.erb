@@ -1,0 +1,152 @@
+<div class="row mb-4">
+  <div class="col-12">
+    <h1 class="mb-3">Your Shopping Basket</h1>
+  </div>
+</div>
+
+<% if @basket.items.empty? %>
+  <div class="alert alert-info mb-4">
+    <h4 class="alert-heading">Your basket is empty!</h4>
+    <p>Looks like you haven't added any widgets to your basket yet.</p>
+    <hr>
+    <a href="/" class="btn btn-primary">
+      <i class="fas fa-shopping-bag me-2"></i>Browse Products
+    </a>
+  </div>
+<% else %>
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Items in your basket</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Product</th>
+                  <th class="text-center">Price</th>
+                  <th class="text-center">Quantity</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @basket.items.each do |item| %>
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <% if item[:product].code == 'R01' %>
+                          <img src="https://placehold.co/80x80/e74c3c/ffffff?text=R01" class="me-3 rounded" width="50" height="50" alt="Red Widget">
+                        <% elsif item[:product].code == 'G01' %>
+                          <img src="https://placehold.co/80x80/27ae60/ffffff?text=G01" class="me-3 rounded" width="50" height="50" alt="Green Widget">
+                        <% elsif item[:product].code == 'B01' %>
+                          <img src="https://placehold.co/80x80/3498db/ffffff?text=B01" class="me-3 rounded" width="50" height="50" alt="Blue Widget">
+                        <% end %>
+                        <div>
+                          <h6 class="mb-0"><%= item[:product].name %></h6>
+                          <small class="text-muted">Code: <%= item[:product].code %></small>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">$<%= format_price(item[:product].price) %></td>
+                    <td class="text-center">
+                      <div class="quantity-control d-flex justify-content-center align-items-center">
+                        <button class="btn btn-sm btn-outline-secondary quantity-btn" data-action="decrease" data-product-code="<%= item[:product].code %>">
+                          <i class="fas fa-minus"></i>
+                        </button>
+                        <span class="mx-2 fw-bold"><%= item[:quantity] %></span>
+                        <button class="btn btn-sm btn-outline-secondary quantity-btn" data-action="increase" data-product-code="<%= item[:product].code %>">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+                    </td>
+                    <td class="text-end">$<%= format_price(item[:product].price * item[:quantity]) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Order Summary</h5>
+        </div>
+        <div class="card-body">
+          <% 
+            total = @basket.total
+            subtotal = @basket.items.sum { |item| item[:product].price * item[:quantity] }
+            
+            item_total_before_delivery = subtotal
+            
+            if @basket.items.any? { |item| item[:product].code == 'R01' && item[:quantity] >= 2 }
+              red_widgets = @basket.items.find { |item| item[:product].code == 'R01' }
+              if red_widgets
+                pairs = red_widgets[:quantity] / 2
+                discount_per_pair = red_widgets[:product].price / 2.0
+                red_widget_discount = pairs * discount_per_pair
+                item_total_before_delivery -= red_widget_discount
+              end
+            end
+            
+            if item_total_before_delivery >= 90
+              delivery = 0
+            elsif item_total_before_delivery >= 50
+              delivery = 2.95
+            else
+              delivery = 4.95
+            end
+            
+            discount = subtotal - item_total_before_delivery
+            
+            calculated_total = item_total_before_delivery + delivery
+          %>
+          
+          <div class="d-flex justify-content-between mb-2">
+            <span>Subtotal:</span>
+            <span>$<%= format_price(subtotal) %></span>
+          </div>
+          
+          <% if discount > 0 %>
+            <div class="d-flex justify-content-between mb-2 text-danger">
+              <span>Discount:</span>
+              <span>-$<%= format_price(discount) %></span>
+            </div>
+          <% end %>
+          
+          <div class="d-flex justify-content-between mb-2 <%= delivery == 0 ? 'text-success' : '' %>">
+            <span>Delivery:</span>
+            <span><%= delivery == 0 ? 'FREE' : '$' + format_price(delivery) %></span>
+          </div>
+          
+          <hr>
+          
+          <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>Total:</span>
+            <span>$<%= format_price(total) %></span>
+          </div>
+          
+          <div class="mt-4 d-grid gap-2">
+            <a href="/checkout" class="btn btn-success">
+              <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+            </a>
+            
+            <form action="/clear" method="post">
+              <button type="submit" class="btn btn-outline-danger w-100">
+                <i class="fas fa-trash me-2"></i>Clear Basket
+              </button>
+            </form>
+            
+            <a href="/" class="btn btn-outline-primary">
+              <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %> 

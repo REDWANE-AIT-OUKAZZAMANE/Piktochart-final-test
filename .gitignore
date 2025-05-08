@@ -1,0 +1,76 @@
+# Ruby
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+
+# Environment normalization
+/.bundle/
+/vendor/bundle
+/lib/bundler/man/
+
+# Documentation cache and artifacts
+/.yardoc/
+/_yardoc/
+/doc/
+/rdoc/
+
+# Default data files
+# Uncomment if you want to ignore sample data files
+# data.csv
+# data.json
+
+# Gemfile lock
+# Uncomment if you want to ignore the Gemfile.lock
+# Gemfile.lock
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Sinatra specific
+.sass-cache/
+*.css.map
+*.sass.map
+*.scss.map
+/public/assets/
+/public/system/
+
+# Logs
+/log/
+*.log
+
+# Environment variables and secrets
+/.env
+/.env.*
+!/.env.example
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Editor and IDE files
+/.idea/
+/.vscode/
+*.sublime-project
+*.sublime-workspace
+*~
+.*.swp
+.*.swo
+
+# Test coverage
+/coverage/
+
+# Temporary files
+.byebug_history
+.rspec
+capybara-*.html
+.rspec_status 
