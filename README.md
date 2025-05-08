@@ -55,6 +55,36 @@ ruby main.rb
 
 The application will be available at [http://localhost:4567](http://localhost:4567)
 
+### Deployment
+
+This application is ready for deployment on platforms like Heroku, Railway, or any platform that supports Rack applications.
+
+#### Option 1: Using the Procfile
+
+```bash
+# Install dependencies
+bundle install
+
+# Start the application using the Procfile
+bundle exec rackup config.ru -p $PORT -o 0.0.0.0
+```
+
+#### Option 2: Direct Rack command
+
+```bash
+# Install dependencies
+bundle install
+
+# Start with Rack
+RACK_ENV=production bundle exec rackup -p 8080 -o 0.0.0.0
+```
+
+#### Environment Variables
+
+- `PORT`: Port to run the application (default: 8080)
+- `HOST`: Host to bind to (default: 0.0.0.0)
+- `RACK_ENV`: Environment setting (development/production)
+
 ### Testing
 
 Run the test suite:

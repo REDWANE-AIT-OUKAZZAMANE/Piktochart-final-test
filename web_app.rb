@@ -5,13 +5,27 @@ require 'json'
 Dir[File.join(__dir__, 'lib', '**', '*.rb')].sort.each { |file| require file }
 
 class AcmeWidgetWebApp < Sinatra::Base
+  # Development configuration
   configure :development do
     register Sinatra::Reloader
   end
 
+  # Production configuration
+  configure :production do
+    # Disable showing exceptions in production
+    set :show_exceptions, false
+    set :raise_errors, false
+    
+    # Enable logging
+    enable :logging
+  end
+
+  # Common configuration
   set :views, File.join(__dir__, 'views')
   set :public_folder, File.join(__dir__, 'public')
-
+  set :bind, '0.0.0.0'
+  
+  # Enable sessions
   enable :sessions
 
   helpers do
