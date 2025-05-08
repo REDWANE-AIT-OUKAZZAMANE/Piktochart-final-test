@@ -95,14 +95,30 @@
         url: url,
         method: 'POST',
         success: function(data) {
-          if (newQuantity === 0 || window.location.pathname === '/basket') {
-            location.reload();
+          if (newQuantity === 0) {
+            if (window.location.pathname === '/basket') {
+              button.closest('tr').fadeOut(300, function() {
+                if ($('table tbody tr:visible').length === 1) {
+                  location.reload();
+                } else {
+                  $(this).remove();
+                  updateOrderSummary();
+                }
+              });
+            } else {
+              location.reload();
+            }
             return;
           }
           
           quantityElement.text(newQuantity);
           updateSubtotal(button, newQuantity);
           updateCartBadge(data.basket_count);
+          
+          if (window.location.pathname === '/basket') {
+            updateOrderSummaryFromData(data);
+          }
+          
           showToast('Success', data.message, 'success');
           controlButtons.prop('disabled', false);
         },
@@ -173,6 +189,35 @@
       toastElement.on('hidden.bs.toast', function() {
         $(this).remove();
       });
+    }
+    
+    function updateOrderSummary() {
+      if (window.location.pathname !== '/basket') return;
+      
+      $('.btn-add-to-cart, .quantity-btn').on('click', function() {
+        // The AJAX handler will call this function with the server's calculated data
+      });
+    }
+    
+    function updateOrderSummaryFromData(data) {
+      if (window.location.pathname !== '/basket') return;
+      
+      $('.card-body .d-flex:nth-child(1) span:last-child').text('$' + data.subtotal.toFixed(2));
+      
+      if (data.discount > 0) {
+        $('.card-body .d-flex:nth-child(2) span:last-child').text('-$' + data.discount.toFixed(2));
+        if ($('.card-body .d-flex:nth-child(2)').hasClass('d-none')) {
+          $('.card-body .d-flex:nth-child(2)').removeClass('d-none');
+        }
+      } else {
+        $('.card-body .d-flex:nth-child(2)').addClass('d-none');
+      }
+      
+      var deliveryElem = $('.card-body .d-flex:nth-child(' + (data.discount > 0 ? '3' : '2') + ') span:last-child');
+      deliveryElem.text(data.delivery === 0 ? 'FREE' : '$' + data.delivery.toFixed(2));
+      deliveryElem.parent().toggleClass('text-success', data.delivery === 0);
+      
+      $('.card-body .fw-bold span:last-child').text('$' + data.total.toFixed(2));
     }
   });
   </script>
