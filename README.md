@@ -24,6 +24,45 @@ The system implements a comprehensive shopping experience for Acme Widget Co, wh
 
 - Buy one red widget, get the second half price
 
+## Getting Started
+
+### Prerequisites
+
+- Ruby 2.7.0 or higher
+- Bundler gem
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/REDWANE-AIT-OUKAZZAMANE/Piktochart-final-test.git
+   cd Piktochart-final-test
+   ```
+
+2. Install dependencies:
+   ```bash
+   bundle install
+   ```
+
+### Running the Application
+
+Start the Sinatra web server:
+
+```bash
+ruby main.rb
+```
+
+The application will be available at [http://localhost:4567](http://localhost:4567)
+
+### Testing
+
+Run the test suite:
+
+```bash
+rspec
+```
+
 ## Features
 
 This application includes:
