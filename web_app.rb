@@ -23,7 +23,7 @@ class AcmeWidgetWebApp < Sinatra::Base
   # Common configuration
   set :views, File.join(__dir__, 'views')
   set :public_folder, File.join(__dir__, 'public')
-  set :bind, '0.0.0.0'
+  set :bind, 'localhost'
   
   # Enable sessions
   enable :sessions
