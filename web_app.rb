@@ -23,7 +23,7 @@ class AcmeWidgetWebApp < Sinatra::Base
   # Common configuration
   set :views, File.join(__dir__, 'views')
   set :public_folder, File.join(__dir__, 'public')
-  set :bind, 'localhost'
+  set :bind, '0.0.0.0'
   
   # Enable sessions
   enable :sessions
@@ -65,123 +65,47 @@ class AcmeWidgetWebApp < Sinatra::Base
     erb :index
   end
 
-  post '/add/:code' do |code|
+  post '/add/:code' do
+    @basket = setup_app
+    
+    code = params[:code]
+    
     begin
-      @basket = setup_app
-      product = @products.find { |p| p.code == code }
+      @basket.add(code)
       
-      if product.nil?
-        content_type :json
-        status 400
-        { success: false, message: "Product not found" }.to_json
-      else
-        session[:items] ||= []
-        
-        item = session[:items].find { |i| i[:code] == code }
-        
-        if item.nil?
-          session[:items] << { code: code, quantity: 1 }
-        else
-          item[:quantity] += 1
-        end
-        
-        # Calculate more detailed response information
-        subtotal = @basket.items.sum { |item| item[:product].price * item[:quantity] }
-        
-        # Calculate discount for red widgets
-        discount = 0
-        if @basket.items.any? { |item| item[:product].code == 'R01' && item[:quantity] >= 2 }
-          red_widgets = @basket.items.find { |item| item[:product].code == 'R01' }
-          if red_widgets
-            pairs = red_widgets[:quantity] / 2
-            discount_per_pair = red_widgets[:product].price / 2.0
-            discount = pairs * discount_per_pair
-          end
-        end
-        
-        # Calculate item total before delivery
-        item_total_before_delivery = subtotal - discount
-        
-        # Calculate delivery cost
-        if item_total_before_delivery >= 90
-          delivery = 0
-        elsif item_total_before_delivery >= 50
-          delivery = 2.95
-        else
-          delivery = 4.95
-        end
-        
-        # Calculate total
-        total = item_total_before_delivery + delivery
-        
-        content_type :json
-        { 
-          success: true, 
-          message: "Added #{product.name} to basket", 
-          basket_count: @basket.items.sum { |item| item[:quantity] },
-          subtotal: subtotal,
-          discount: discount,
-          delivery: delivery,
-          total: total
-        }.to_json
-      end
-    rescue => e
+      session[:items] ||= []
+      session[:items] << code
+      
       content_type :json
-      status 500
-      { success: false, message: "Error processing request: #{e.message}" }.to_json
+      { 
+        success: true, 
+        message: "Added #{code} to basket", 
+        basket_count: @basket.items.sum { |item| item[:quantity] } 
+      }.to_json
+    rescue ArgumentError => e
+      content_type :json
+      status 400
+      { success: false, message: e.message }.to_json
     end
   end
 
-  post '/remove/:code' do |code|
+  post '/remove/:code' do
+    @basket = setup_app
+    code = params[:code]
+    
     begin
-      @basket = setup_app
-      item_index = session[:items]&.find_index { |i| i[:code] == code }
+      item_index = session[:items].index(code)
       
       if item_index
-        if session[:items][item_index][:quantity] > 1
-          session[:items][item_index][:quantity] -= 1
-        else
-          session[:items].delete_at(item_index)
-        end
+        session[:items].delete_at(item_index)
         
-        # Calculate more detailed response information
-        subtotal = @basket.items.sum { |item| item[:product].price * item[:quantity] }
-        
-        # Calculate discount for red widgets
-        discount = 0
-        if @basket.items.any? { |item| item[:product].code == 'R01' && item[:quantity] >= 2 }
-          red_widgets = @basket.items.find { |item| item[:product].code == 'R01' }
-          if red_widgets
-            pairs = red_widgets[:quantity] / 2
-            discount_per_pair = red_widgets[:product].price / 2.0
-            discount = pairs * discount_per_pair
-          end
-        end
-        
-        # Calculate item total before delivery
-        item_total_before_delivery = subtotal - discount
-        
-        # Calculate delivery cost
-        if item_total_before_delivery >= 90
-          delivery = 0
-        elsif item_total_before_delivery >= 50
-          delivery = 2.95
-        else
-          delivery = 4.95
-        end
-        
-        # Calculate total
-        total = item_total_before_delivery + delivery
+        @basket = setup_app
         
         content_type :json
         { 
           success: true, 
           message: "Removed one #{code} from basket", 
-          basket_count: @basket.items.sum { |item| item[:quantity] },
-          subtotal: subtotal,
-          discount: discount,
-          delivery: delivery,
-          total: total
+          basket_count: @basket.items.sum { |item| item[:quantity] }
         }.to_json
       else
         content_type :json
@@ -191,7 +115,7 @@ class AcmeWidgetWebApp < Sinatra::Base
     rescue => e
       content_type :json
       status 500
-      { success: false, message: "Error processing request: #{e.message}" }.to_json
+      { success: false, message: e.message }.to_json
     end
   end
 
