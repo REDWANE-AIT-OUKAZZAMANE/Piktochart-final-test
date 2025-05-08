@@ -142,5 +142,43 @@ class AcmeWidgetWebApp < Sinatra::Base
     erb :order_complete
   end
 
+  # JSON endpoint for order summary updates
+  get '/order-summary' do
+    @basket = setup_app
+    
+    subtotal = @basket.items.sum { |item| item[:product].price * item[:quantity] }
+    
+    item_total_before_delivery = subtotal
+    
+    if @basket.items.any? { |item| item[:product].code == 'R01' && item[:quantity] >= 2 }
+      red_widgets = @basket.items.find { |item| item[:product].code == 'R01' }
+      if red_widgets
+        pairs = red_widgets[:quantity] / 2
+        discount_per_pair = red_widgets[:product].price / 2.0
+        red_widget_discount = pairs * discount_per_pair
+        item_total_before_delivery -= red_widget_discount
+      end
+    end
+    
+    if item_total_before_delivery >= 90
+      delivery = 0
+    elsif item_total_before_delivery >= 50
+      delivery = 2.95
+    else
+      delivery = 4.95
+    end
+    
+    discount = subtotal - item_total_before_delivery
+    total = @basket.total
+    
+    content_type :json
+    {
+      subtotal: format_price(subtotal),
+      discount: format_price(discount),
+      delivery: format_price(delivery),
+      total: format_price(total)
+    }.to_json
+  end
+
   run! if app_file == $0
 end 

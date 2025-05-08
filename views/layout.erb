@@ -95,7 +95,7 @@
         url: url,
         method: 'POST',
         success: function(data) {
-          if (newQuantity === 0 || window.location.pathname === '/basket') {
+          if (newQuantity === 0) {
             location.reload();
             return;
           }
@@ -103,6 +103,11 @@
           quantityElement.text(newQuantity);
           updateSubtotal(button, newQuantity);
           updateCartBadge(data.basket_count);
+          
+          if (window.location.pathname === '/basket') {
+            updateOrderSummary();
+          }
+          
           showToast('Success', data.message, 'success');
           controlButtons.prop('disabled', false);
         },
@@ -172,6 +177,36 @@
       
       toastElement.on('hidden.bs.toast', function() {
         $(this).remove();
+      });
+    }
+    
+    function updateOrderSummary() {
+      $.ajax({
+        url: '/order-summary',
+        method: 'GET',
+        success: function(data) {
+          $('.order-summary .subtotal-value').text('$' + data.subtotal);
+          
+          if (data.discount > 0) {
+            $('.order-summary .discount-row').removeClass('d-none');
+            $('.order-summary .discount-value').text('-$' + data.discount);
+          } else {
+            $('.order-summary .discount-row').addClass('d-none');
+          }
+          
+          var deliveryText = data.delivery === 0 ? 'FREE' : '$' + data.delivery;
+          $('.order-summary .delivery-value').text(deliveryText);
+          if (data.delivery === 0) {
+            $('.order-summary .delivery-row').addClass('text-success');
+          } else {
+            $('.order-summary .delivery-row').removeClass('text-success');
+          }
+          
+          $('.order-summary .total-value').text('$' + data.total);
+        },
+        error: function() {
+          showToast('Error', 'Could not update order summary', 'danger');
+        }
       });
     }
   });
